@@ -70,8 +70,5 @@ poetry run pytest -q
 **Contribuir**
 - Abrir issues o PRs con cambios pequeños y pruebas cuando sea posible.
 
-**Licencia**
-- No se especificó licencia en el repositorio. Añádela si quieres publicar este proyecto.
-
 ---
 
