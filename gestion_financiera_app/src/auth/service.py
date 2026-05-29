@@ -9,7 +9,7 @@ class AuthService:
         existing_user = await UserRepository(db).get_user_by_email( email)
         if existing_user:
             raise ValueError("Usuario ya registrado")
-        data = UserCreate(username=username, email=email, password=password)
+        data = UserCreate(username=username, email=email, password=hash_password(password))
         new_user = await UserRepository(db).create_user(data)
         return new_user
 
