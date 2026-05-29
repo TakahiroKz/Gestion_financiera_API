@@ -18,6 +18,7 @@ class RoleRepository:
             self.db.add(new_role)
             await self.db.commit()
             await self.db.refresh(new_role)
+            return new_role
         except Exception as e:
             await self.db.rollback()
             return e

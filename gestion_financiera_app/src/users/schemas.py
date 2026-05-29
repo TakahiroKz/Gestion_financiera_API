@@ -1,14 +1,15 @@
+import uuid
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 class UserCreate(BaseModel):
     username: str = Field(min_length=2)
     email: EmailStr
-    password:str = Field(min_length=6)
+    password:str = Field(min_length=6, max_length=64)
 
 class UserUpdate(BaseModel):
     username: str | None = Field(min_length=2)
     email: EmailStr | None = None
-    password: str | None = Field(min_length=6, default=None)
+    password: str | None = Field(min_length=6, max_length=64, default=None)
     is_active: bool | None = None
     is_verified: bool | None = None
     role_id: int | None = None
@@ -17,7 +18,7 @@ class UserDelete(BaseModel):
     id: int
 
 class UserResponse(BaseModel):
-    id: int
+    id: uuid.UUID
     username: str
     email: EmailStr
     is_active:bool

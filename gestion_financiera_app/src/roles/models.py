@@ -1,9 +1,9 @@
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.core.base import Base, TimestampMixin, UUIDMixin
+from src.core.base import Base, TimestampMixin, UUIDMixin, IntIDMixin
 
-class Role(Base, TimestampMixin, UUIDMixin):
+class Role(Base, TimestampMixin, IntIDMixin):
     __tablename__ = "roles"
 
     name: Mapped[str] = mapped_column(
