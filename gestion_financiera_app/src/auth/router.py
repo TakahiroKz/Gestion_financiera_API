@@ -28,6 +28,8 @@ async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
 async def login(data: LoginRequest, db:AsyncSession = Depends(get_db)):
     try:
         token = await AuthService.login(db, data.email, data.password)
-        return token
+        return TokenResponse(
+            access_token=token
+        )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
