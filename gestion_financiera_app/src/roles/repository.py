@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.roles.models import Role
-from src.roles.schemas import RoleCreate, RoleUpdate
+from src.roles.schemas import RoleCreate, RoleUpdate, RoleDelete
 
 class RoleRepository:
     def __init__(self,db: AsyncSession):
@@ -61,9 +61,10 @@ class RoleRepository:
             await self.db.rollback()
             return e
 
-    async def delete_role(self, role_id:int) -> bool:
+    async def delete_role(self, data:RoleDelete) -> bool:
         try:
-            existing_role = await self.db.execute(select(Role).where(Role.id == role_id))
+            existing_role = await self.db.execute(select(Role).where(Role.name == data.name))
+            existing_role = existing_role.scalars().one_or_none()
             if not existing_role:
                 return False
             await self.db.delete(existing_role)

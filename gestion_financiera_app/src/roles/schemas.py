@@ -9,6 +9,12 @@ class RoleUpdate(BaseModel):
     description: str | None = None
 
 class RoleDelete(BaseModel):
+    name: str
+
+class RoleGetByName(BaseModel):
+    name:str
+
+class RoleGetByID(BaseModel):
     id: int
 
 class RoleResponse(BaseModel):
@@ -17,3 +23,6 @@ class RoleResponse(BaseModel):
     description: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
+
+class RoleListResponse(BaseModel):
+    roles: list[RoleResponse]
