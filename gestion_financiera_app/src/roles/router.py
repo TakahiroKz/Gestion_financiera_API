@@ -33,7 +33,7 @@ async def update_role(data: RoleUpdate, db:AsyncSession = Depends(get_db), curre
         raise HTTPException(status_code=400, detail=str(e))
     
 @role_router.delete("/delete/{name}", status_code=204)
-async def delete_role(name: str, db : AsyncSession = Depends(get_db)):
+async def delete_role(name: str, db : AsyncSession = Depends(get_db), current_user: User = Depends(require_role("admin"))):
     try:
         await RoleService.delete_role(db, RoleDelete(name=name))
         return GenResponse(
@@ -44,7 +44,7 @@ async def delete_role(name: str, db : AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=400, detail= str(e))
     
 @role_router.get("/allroles", response_model=RoleListResponse)
-async def get_all_roles(db:AsyncSession = Depends(get_db)):
+async def get_all_roles(db:AsyncSession = Depends(get_db), current_user: User = Depends(require_role("admin"))):
     try:
         _roles = await RoleService.get_all_roles(db)
         roles = [RoleResponse(
@@ -59,7 +59,7 @@ async def get_all_roles(db:AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
     
 @role_router.get("/getbyname/{name}",response_model=RoleResponse)
-async def get_by_name( name:str , db:AsyncSession = Depends(get_db)):
+async def get_by_name( name:str , db:AsyncSession = Depends(get_db), current_user: User = Depends(require_role("admin"))):
     roles = await RoleService.get_role_by_name(db,name)
     return RoleResponse(
         id = roles.id,
@@ -68,7 +68,7 @@ async def get_by_name( name:str , db:AsyncSession = Depends(get_db)):
     )
     
 @role_router.get("/getbyid/{role_id}", response_model=RoleResponse)
-async def get_by_id(role_id: int, db:AsyncSession = Depends(get_db)):
+async def get_by_id(role_id: int, db:AsyncSession = Depends(get_db), current_user: User = Depends(require_role("admin"))):
     roles = await RoleService.get_role_by_id(db, role_id)
     return RoleResponse(
         id = roles.id,

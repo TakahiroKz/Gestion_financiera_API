@@ -1,11 +1,13 @@
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
+from math import ceil
 
 from src.users.models import User
-from src.users.schemas import UserCreate, UserUpdate
+from src.users.schemas import UserCreate, UserUpdate, UserResponse
+from src.core.paginador.paginador import PaginatedResponse
 
 class UserRepository:
     def __init__ (self, db: AsyncSession):
@@ -43,17 +45,31 @@ class UserRepository:
         except Exception as e:
             return e
     
-    async def get_get_all_users(self) -> list[User]:
+    async def get_get_all_users(self,page:int, limit:int) -> list[User]:
+        offset = (page-1)* limit
         try:
-            stmt = select(User)
+            count_query = (select(func.count()).select_from(User))
+            count_result = await self.db.execute(count_query)
+            total = count_result.scalar()
+            pages = ceil(total/limit)
+            stmt = (select(User).offset(offset).limit(limit))
             result = await self.db.execute(stmt)
-            return list(result.scalars().all())
+            users = result.scalars().all()
+            return PaginatedResponse[UserResponse](
+                items = users,
+                total = total,
+                page = page,
+                limit = limit,
+                pages = pages,
+                has_next = page < pages,
+                has_prev = page > 1
+            )
         except Exception as e:
             return e
 
-    async def update_user(self, user_id:int, data: UserUpdate) -> User | None:
+    async def update_user(self, email:str, data: UserUpdate) -> User | None:
         try: 
-            existing_user = await self.get_user_by_id(user_id)
+            existing_user = await self.get_user_by_email(email)
             if not existing_user:
                 return None
             existing_user.username = data.username or existing_user.username

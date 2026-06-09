@@ -14,6 +14,9 @@ class UserUpdate(BaseModel):
     is_verified: bool | None = None
     role_id: int | None = None
 
+class UserGetByEmail(BaseModel):
+    email: EmailStr
+
 class UserDelete(BaseModel):
     id: int
 

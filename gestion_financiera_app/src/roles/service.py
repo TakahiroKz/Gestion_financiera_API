@@ -4,8 +4,6 @@ from src.roles.schemas import (
     RoleCreate,
     RoleUpdate,
     RoleDelete,
-    RoleGetByID,
-    RoleGetByName
 )
 
 class RoleService:
