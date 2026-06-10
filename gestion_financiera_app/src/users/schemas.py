@@ -29,3 +29,6 @@ class UserResponse(BaseModel):
     role_name: str
 
     model_config = ConfigDict(from_attributes=True)
+
+class UsersResponse(BaseModel):
+    users : list[UserResponse]

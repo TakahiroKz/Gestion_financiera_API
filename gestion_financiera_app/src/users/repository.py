@@ -45,16 +45,26 @@ class UserRepository:
         except Exception as e:
             return e
     
-    async def get_get_all_users(self,page:int, limit:int) -> list[User]:
+    async def get_all_users(self,page:int, limit:int) -> PaginatedResponse[UserResponse]:
         offset = (page-1)* limit
         try:
             count_query = (select(func.count()).select_from(User))
             count_result = await self.db.execute(count_query)
             total = count_result.scalar()
             pages = ceil(total/limit)
-            stmt = (select(User).offset(offset).limit(limit))
+            stmt = (select(User).offset(offset).limit(limit).options(selectinload(User.role)))
             result = await self.db.execute(stmt)
-            users = result.scalars().all()
+            result = result.scalars().all()
+            users = [UserResponse(
+                id = user.id,
+                username = user.username,
+                email = user.email,
+                is_active = user.is_active,
+                is_verified = user.is_verified,
+                role_name = user.role.name
+            )
+            for user in result]
+
             return PaginatedResponse[UserResponse](
                 items = users,
                 total = total,
@@ -65,7 +75,7 @@ class UserRepository:
                 has_prev = page > 1
             )
         except Exception as e:
-            return e
+            raise ValueError(e)
 
     async def update_user(self, email:str, data: UserUpdate) -> User | None:
         try: 
@@ -83,7 +93,7 @@ class UserRepository:
             return existing_user
         except Exception as e:
             await self.db.rollback()
-            return e
+            raise ValueError(e)
 
     async def delete_user(self, user_id:int) -> bool:
         try:
@@ -95,6 +105,6 @@ class UserRepository:
             return True
         except Exception as e:
             await self.db.rollback()
-            return e
+            return False
         
         

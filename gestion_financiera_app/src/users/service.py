@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.users.repository import UserRepository
 from src.users.schemas import UserCreate, UserUpdate, UserGetByEmail, UserResponse
-from src.core.paginador import PaginatedResponse
+from src.core.paginador.paginador import PaginatedResponse
 
 class UserService:
     async def create_user(db: AsyncSession, data:UserCreate):
@@ -23,6 +23,6 @@ class UserService:
         existing_user = await UserRepository(db).get_user_by_email(data.email)
         return existing_user
     
-    async def get_users(db: AsyncSession):
-        existing_user = await UserRepository(db).get_get_all_users()
+    async def get_users(db: AsyncSession, page:int, limit: int):
+        existing_user = await UserRepository(db).get_all_users(page, limit)
         return existing_user
