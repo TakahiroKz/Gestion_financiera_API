@@ -4,6 +4,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from math import ceil
+from sqlalchemy.exc import SQLAlchemyError
 
 from src.users.models import User
 from src.users.schemas import UserCreate, UserUpdate, UserResponse
@@ -24,10 +25,28 @@ class UserRepository:
             self.db.add(new_user)
             await self.db.commit()
             await self.db.refresh(new_user)
-            return new_user
-        except Exception as e:
+            created_user = await self.get_user_by_email(new_user.email)
+            return created_user
+        except SQLAlchemyError:
             await self.db.rollback()
-            return e
+            raise 
+        # try:
+        #     new_user = User(
+        #         username = data.username,
+        #         email = data.email,
+        #         hashed_password = data.password,
+        #         role_id = 2
+        #     )
+        #     self.db.add(new_user)
+        #     await self.db.commit()
+        #     await self.db.refresh(new_user)
+        #     result = self.get_user_by_email(data.email)
+        #     user = result.scalars().one_or_none()
+        #     print(f"*****repository {user}")
+        #     return user
+        # except Exception as e:
+        #     await self.db.rollback()
+        #     raise ValueError(e)
     
     async def get_user_by_id(self, user_id:int) -> User | None:
         try:
@@ -35,7 +54,7 @@ class UserRepository:
             result = await self.db.execute(stmt)
             return result.scalars().one_or_none()
         except Exception as e:
-            return e
+            raise ValueError(e)
     
     async def get_user_by_email(self, email:str) -> User | None:
         try:
@@ -43,7 +62,7 @@ class UserRepository:
             result = await self.db.execute(stmt)
             return result.scalars().one_or_none()
         except Exception as e:
-            return e
+            raise ValueError(e)
     
     async def get_all_users(self,page:int, limit:int) -> PaginatedResponse[UserResponse]:
         offset = (page-1)* limit
@@ -95,9 +114,9 @@ class UserRepository:
             await self.db.rollback()
             raise ValueError(e)
 
-    async def delete_user(self, user_id:int) -> bool:
+    async def delete_user(self, email:str) -> bool:
         try:
-            existing_user = await self.get_user_by_id(user_id)
+            existing_user = await self.get_user_by_email(email)
             if not existing_user:
                 return False
             await self.db.delete(existing_user)
@@ -106,5 +125,6 @@ class UserRepository:
         except Exception as e:
             await self.db.rollback()
             return False
+        
         
         

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi.exceptions import ResponseValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.users.models import User
@@ -23,6 +24,8 @@ async def get_all_users(pagination = Depends(pagination_params),db: AsyncSession
 async def get_user_by_email(data: UserGetByEmail ,db:AsyncSession = Depends(get_db)):
     try:
         user = await UserService.get_user(db, data)
+        if user == None:
+            raise HTTPException(status_code=400, detail="No se encontraron usuarios")
         return UserResponse(
             id=user.id,
             username = user.username,
@@ -37,7 +40,9 @@ async def get_user_by_email(data: UserGetByEmail ,db:AsyncSession = Depends(get_
 @user_router.post("/create_user", response_model=UserResponse)
 async def create_user(data: UserCreate, db: AsyncSession = Depends(get_db)):
     try:
-        created = await UserService.create_user(data)
+        created = await UserService.create_user(db,data)
+        if created:
+            raise HTTPException(status_code=400, detail="Ya se ha creado un usuario")    
         return UserResponse(
             id=created.id,
             username = created.username,
@@ -47,10 +52,11 @@ async def create_user(data: UserCreate, db: AsyncSession = Depends(get_db)):
             role_name = created.role.name
         )
     except ValueError as e:
-        HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
+
 
 @user_router.put("/update_user", response_model=UserResponse)
-async def update_user(data: UserUpdate, db: AsyncSession = Depends(get_db)):
+async def update_user(data: UserUpdate, db: AsyncSession = Depends(get_db))->UserResponse:
     try:
         updated = await UserService.update_user(db, data)
         return UserResponse(
@@ -62,15 +68,15 @@ async def update_user(data: UserUpdate, db: AsyncSession = Depends(get_db)):
             role_name = updated.role.name
         )
     except ValueError as e:
-        HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e))
 
-@user_router.delete("/delete_user", response_model=GenResponse)
-async def delete_user(data: UserDelete, db: AsyncSession = Depends(get_db)):
+@user_router.delete("/delete_user/{email}", response_model=GenResponse)
+async def delete_user(email:str, db: AsyncSession = Depends(get_db)):
     try:
-        deleted = await UserService.delete_user(db, data)
+        deleted = await UserService.delete_user(db, email)
         return GenResponse(
             success = deleted,
             message = "Completed"
         )
     except ValueError as e:
-        return HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e))

@@ -18,7 +18,7 @@ class UserGetByEmail(BaseModel):
     email: EmailStr
 
 class UserDelete(BaseModel):
-    id: int
+    email: EmailStr
 
 class UserResponse(BaseModel):
     id: uuid.UUID
